@@ -14,17 +14,21 @@ export default function LoginPage() {
   useEffect(() => {
     const savedUser = localStorage.getItem("brgy_user");
     if (savedUser) {
-      router.push("/");
+      router.push("/dashboard"); // Ini-adjust ko para dumeretso sa dashboard mo kung may login na
     }
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    loading(true);
+
+    // 🚀 CLOUD ROUTING CONNECTOR:
+    // Palitan mo ang 'https://iyong-backend-pangalan.onrender.com' ng totoong Live URL mula sa Render Dashboard mo!
+    const BACKEND_URL = "https://iyong-backend-pangalan.onrender.com";
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", { 
+      const res = await fetch(`${BACKEND_URL}/api/auth/login`, { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password, role }),
@@ -36,7 +40,7 @@ export default function LoginPage() {
         localStorage.setItem("brgy_user", JSON.stringify(data.user || { name: username, role }));
         router.push("/dashboard");
       } else {
-        setError(data.message || "Invalid credentials. Please verify your details.");
+        setError(data.error || data.message || "Invalid credentials. Please verify your details.");
       }
     } catch (err) {
       setError("Cannot connect to the server. Please check if your backend is running.");
@@ -75,7 +79,6 @@ export default function LoginPage() {
 
       {/* RIGHT: Clean Admin Login Interface - 50% */}
       <div className="w-1/2 flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-36 flex">
-        {/* 📦 Ang buong right box panel ay aangat na rin nang sabay gamit ang v4 configuration natin! */}
         <div className="mx-auto w-full max-w-md animate-fadeInUp">
           <div className="mb-8 flex items-center gap-3">
             <div className="h-8 w-1.5 rounded-full bg-green-700 animate-pulse"></div>
@@ -84,7 +87,6 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          {/* 🚨 Tiyak na yayanig kapag lumabas ang validation error */}
           {error && (
             <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 p-3 text-sm font-semibold text-rose-600 animate-shake">
               ⚠️ {error}
