@@ -4,10 +4,13 @@ import { connectToDatabase } from "@/lib/db";
 import Blotter from "@/models/Blotter";
 import Log from "@/models/Log"; 
 
+// 🚀 FORCE DYNAMIC: Sinasabihan si Next.js na huwag i-prerender ito sa build time para hindi hanapin ang Database URI!
+export const dynamic = 'force-dynamic';
+
 // 🗑️ DELETE ROUTINE: Purges a record using its unique ID
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // 👈 GINAWANG PROMISE ANG TYPE PARA PASADO SA NEXT.JS BUILD
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
@@ -35,7 +38,7 @@ export async function DELETE(
 // 📝 PUT ROUTINE: Handles Edit/Update operations for a record
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // 👈 GINAWANG PROMISE DIN ANG TYPE DITO GAR
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
