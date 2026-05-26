@@ -14,17 +14,16 @@ export default function LoginPage() {
   useEffect(() => {
     const savedUser = localStorage.getItem("brgy_user");
     if (savedUser) {
-      router.push("/dashboard"); // Ini-adjust ko para dumeretso sa dashboard mo kung may login na
+      router.push("/dashboard");
     }
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    loading(true);
+    setLoading(true); // ⚡ TAMA NA: Ginamit ang tamang state setter function!
 
     // 🚀 CLOUD ROUTING CONNECTOR:
-    // Palitan mo ang 'https://iyong-backend-pangalan.onrender.com' ng totoong Live URL mula sa Render Dashboard mo!
     const BACKEND_URL = "https://barangay-mis-backend.onrender.com";
 
     try {
@@ -89,7 +88,7 @@ export default function LoginPage() {
 
           {error && (
             <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 p-3 text-sm font-semibold text-rose-600 animate-shake">
-              ⚠️ {error}
+             {error}
             </div>
           )}
 
