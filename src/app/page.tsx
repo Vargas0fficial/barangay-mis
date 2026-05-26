@@ -25,7 +25,7 @@ export default function LoginPage() {
 
     // 🚀 CLOUD ROUTING CONNECTOR:
     // Palitan mo ang 'https://iyong-backend-pangalan.onrender.com' ng totoong Live URL mula sa Render Dashboard mo!
-    const BACKEND_URL = "https://iyong-backend-pangalan.onrender.com";
+    const BACKEND_URL = "https://barangay-mis-backend.onrender.com";
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/auth/login`, { 
