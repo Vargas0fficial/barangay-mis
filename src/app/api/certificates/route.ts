@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/db";
 import Certificate from "@/models/Certificate";
 import Log from "@/models/Log"; // 🎯 Isama natin ang Log model para sa automatic audit trail
 
+export const dynamic = 'force-dynamic';
 // 1. GET - Kunin ang lahat ng hininging clearances/certificates
 export async function GET() {
   try {

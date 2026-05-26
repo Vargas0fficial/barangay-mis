@@ -4,6 +4,8 @@ import { connectToDatabase } from "@/lib/db";
 import Official from "@/models/Official"; // 🎯 Gagamitin na natin ang iisang malinis na model!
 import Log from "@/models/Log"; 
 
+export const dynamic = 'force-dynamic';
+
 // 📄 GET ROUTINE: Fetches all barangay officials ordered by term start date
 export async function GET() {
   try {

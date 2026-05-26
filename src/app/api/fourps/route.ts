@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/db";
 import FourPs from "@/models/FourPs"; 
 import Log from "@/models/Log"; // 🎯 Swak sa tamang path ng iyong Log model, gar!
 
+export const dynamic = 'force-dynamic';
 // 1. GET METHOD - Kunin ang lahat ng 4Ps beneficiaries
 export async function GET() {
   try {

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Log from "@/models/Log";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     await connectToDatabase();
