@@ -4,6 +4,9 @@ import { connectToDatabase } from "@/lib/db";
 import Resident from "@/models/Resident";
 import Log from "@/models/Log"; 
 
+// 🚀 FORCE DYNAMIC: Sinasabihan si Next.js na huwag i-prerender ito sa build time para lampasan ang Database URI check!
+export const dynamic = 'force-dynamic';
+
 // 1. GET ALL RESIDENTS
 export async function GET() {
   try {
@@ -36,7 +39,6 @@ export async function POST(request: Request) {
       return dbFirstName.toLowerCase() === cleanFirstName.toLowerCase();
     });
 
-    
     if (isDuplicate) {
       return NextResponse.json(
         { error: `Warning: Resident ${cleanFirstName.toUpperCase()} ${cleanLastName.toUpperCase()} is already registered in the database.` },

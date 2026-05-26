@@ -1,3 +1,4 @@
+// src/app/api/dashboard/stats/route.ts
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Resident from "@/models/Resident";
@@ -5,6 +6,9 @@ import Log from "@/models/Log";
 import Blotter from "@/models/Blotter"; 
 import Official from "@/models/Official"; 
 import FourPs from "@/models/FourPs"; // Selyadong 4Ps model track
+
+// 🚀 FORCE DYNAMIC: Sinasabihan si Next.js na huwag i-prerender ito sa build time para lampasan ang Database URI check!
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {

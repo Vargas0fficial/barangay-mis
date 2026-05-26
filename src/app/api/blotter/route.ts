@@ -4,6 +4,9 @@ import { connectToDatabase } from "@/lib/db";
 import Blotter from "@/models/Blotter";
 import Log from "@/models/Log"; // 🎯 Integrated for audit trail entry
 
+// 🚀 FORCE DYNAMIC: Sinasabihan si Next.js na huwag i-prerender ito sa build time para hindi na hanapin ang Database URI habang nagko-compile!
+export const dynamic = 'force-dynamic';
+
 // 📄 GET ROUTINE: Fetches all blotter records sorted by the newest entry
 export async function GET() {
   try {
