@@ -5,22 +5,32 @@ import { Plus, Search, Edit2, Trash2, X } from "lucide-react";
 // 🚀 IN-IMPORT ANG FRAMER MOTION AT ANIMATEPRESENCE GAR
 import { motion, AnimatePresence } from "framer-motion";
 
+// 🔐 DEFINED SINGLE SOURCE OF TRUTH PARA SA RESIDENT DATA STRUCTURE
+interface Resident {
+  _id?: string;
+  residentId: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  contactNo: string;
+  streetAddress: string;
+  zoneAssignment: string;
+  gender: string;
+  civilStatus: string;
+  accountStatus: string;
+  age?: number | string;
+  isVoter?: string;
+  // Fallbacks for data mapping safety
+  contact?: string;
+  address?: string;
+  purok?: string;
+  status?: string;
+  isRegisteredVoter?: string;
+}
+
 export default function ResidentsPage() {
-  // 1. Local States for Residents Table Data
-  const [residents, setResidents] = useState<{
-    _id?: string;
-    firstName: string;
-    middleName: string;
-    lastName: string;
-    contact: string;
-    address: string;
-    purok: string;
-    gender: string;
-    civilStatus: string;
-    status: string;
-    age?: number | string;
-    isRegisteredVoter?: string;
-  }[]>([]);
+  // 1. Local States for Residents Table Data (Naka-sync na sa bagong Schema properties, gar!)
+  const [residents, setResidents] = useState<Resident[]>([]);
 
   // 2. Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,19 +45,19 @@ export default function ResidentsPage() {
   // 🚨 BAGONG STATE: Lalagyan ng pansamantalang babala kapag duplicate ang isinusumite, gar!
   const [modalError, setModalError] = useState("");
 
-  // 4. Form State for Resident Input Block
+  // 4. Form State for Resident Input Block (Tugma sa properties ng image_1058c5.png)
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
     lastName: "",
-    contactNumber: "",
-    address: "",
-    barangay: "Zone I",
+    contactNo: "",
+    streetAddress: "",
+    zoneAssignment: "Zone I",
     gender: "Male",
     civilStatus: "Single",
-    status: "Active",
+    accountStatus: "Active",
     age: "",
-    isRegisteredVoter: "No",
+    isVoter: "No",
   });
 
   // ✨ AUTOMATIC RESIDENTS FETCH SYNC
@@ -74,18 +84,19 @@ export default function ResidentsPage() {
 
     const targetResident = selectedResidentIndex !== null ? residents[selectedResidentIndex] : null;
 
+    // Selyadong payload build base sa bagong structure natin, gar!
     const bodyData = {
       firstName: formData.firstName,
       middleName: formData.middleName,
       lastName: formData.lastName,
-      contact: formData.contactNumber,
-      address: formData.address,
-      purok: formData.barangay,
+      contactNo: formData.contactNo,
+      streetAddress: formData.streetAddress,
+      zoneAssignment: formData.zoneAssignment,
       gender: formData.gender,
       civilStatus: formData.civilStatus,
-      status: formData.status,
+      accountStatus: formData.accountStatus,
       age: formData.age ? Number(formData.age) : "",
-      isRegisteredVoter: formData.isRegisteredVoter,
+      isVoter: formData.isVoter,
     };
 
     if (isEditMode && targetResident && targetResident._id) {
@@ -110,6 +121,7 @@ export default function ResidentsPage() {
       }
     } else {
       try {
+        // Papasok sa POST endpoint kung saan automatic na ang counter at text keying ng ID at Password
         const res = await fetch("/api/residents", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -121,16 +133,16 @@ export default function ResidentsPage() {
         if (res.ok) {
           fetchResidents();
           setIsModalOpen(false);
-          // I-reset lang ang form kapag matagumpay na na-save!
+          // I-reset ang form sa defaults pagkatapos mag-save!
           setFormData({ 
-            firstName: "", middleName: "", lastName: "", contactNumber: "", 
-            address: "", barangay: "Zone I", gender: "Male", civilStatus: "Single", 
-            status: "Active", age: "", isRegisteredVoter: "No"
+            firstName: "", middleName: "", lastName: "", contactNo: "", 
+            streetAddress: "", zoneAssignment: "Zone I", gender: "Male", civilStatus: "Single", 
+            accountStatus: "Active", age: "", isVoter: "No"
           });
         } else {
-          // 🚨 KUNG DI OK (STATUS 400 MULA SA API ROUTE), ILALABAS ANG WARNING ALERTER
+          // 🚨 KUNG DI OK, ILALABAS ANG WARNING ALERTER PARA DI MAWALANG INPUTS NI ADMIN
           setModalError(data.error || "Failed to save new resident to database.");
-          return; // Hinto rito para hindi mawala ang tina-type ng admin sa input boxes
+          return;
         }
       } catch (err) {
         console.error("Error creating resident:", err);
@@ -163,33 +175,44 @@ export default function ResidentsPage() {
     }
   };
 
-  // ✏️ RESIDENT EDIT POPULATE TRIGGER
-  const handleEditTrigger = (res: any, index: number) => {
+  // ✏️ RESIDENT EDIT POPULATE TRIGGER - TYPED CORRECTLY TO AVOID RED LINES
+  const handleEditTrigger = (res: Resident, index: number) => {
     setModalError(""); // Clear errors
     setSelectedResidentIndex(index);
     setFormData({
       firstName: res.firstName,
       middleName: res.middleName || "",
       lastName: res.lastName,
-      contactNumber: res.contact,
-      address: res.address,
-      barangay: res.purok,
+      contactNo: res.contactNo || res.contact || "",
+      streetAddress: res.streetAddress || res.address || "",
+      zoneAssignment: res.zoneAssignment || res.purok || "Zone I",
       gender: res.gender,
       civilStatus: res.civilStatus,
-      status: res.status,
+      accountStatus: res.accountStatus || res.status || "Active",
       age: res.age !== undefined ? String(res.age) : "",
-      isRegisteredVoter: res.isRegisteredVoter || "No"
+      isVoter: res.isVoter || res.isRegisteredVoter || "No"
     });
     setIsEditMode(true);
     setIsModalOpen(true);
   };
 
-  // 6. Filter Verification Logic
+  // 6. Filter Verification Logic (Naka-sync sa bagong properties)
   const filteredResidents = residents.filter((res) => {
     const fullName = `${res.firstName} ${res.lastName}`.toLowerCase();
-    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || res.contact.includes(searchQuery);
-    const matchesBarangay = barangayFilter === "All" || res.purok === barangayFilter;
-    const matchesStatus = statusFilter === "All" || res.status === statusFilter;
+    const searchId = res.residentId ? res.residentId.toLowerCase() : "";
+    const contactField = res.contactNo || res.contact || "";
+
+    const matchesSearch = 
+      fullName.includes(searchQuery.toLowerCase()) || 
+      contactField.includes(searchQuery) ||
+      searchId.includes(searchQuery.toLowerCase());
+
+    const currentZone = res.zoneAssignment || res.purok || "";
+    const currentStatus = res.accountStatus || res.status || "";
+
+    const matchesBarangay = barangayFilter === "All" || currentZone === barangayFilter;
+    const matchesStatus = statusFilter === "All" || currentStatus === statusFilter;
+    
     return matchesSearch && matchesBarangay && matchesStatus;
   });
 
@@ -217,7 +240,7 @@ export default function ResidentsPage() {
                 setModalError("");
                 setIsEditMode(false);
                 setSelectedResidentIndex(null);
-                setFormData({ firstName: "", middleName: "", lastName: "", contactNumber: "", address: "", barangay: "Zone I", gender: "Male", civilStatus: "Single", status: "Active", age: "", isRegisteredVoter: "No" });
+                setFormData({ firstName: "", middleName: "", lastName: "", contactNo: "", streetAddress: "", zoneAssignment: "Zone I", gender: "Male", civilStatus: "Single", accountStatus: "Active", age: "", isVoter: "No" });
                 setIsModalOpen(true);
               }}
               className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
@@ -245,7 +268,7 @@ export default function ResidentsPage() {
           </div>
 
           <div className="relative">
-            <input type="text" placeholder="Search resident name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-64 rounded-lg border border-gray-200 bg-slate-50 p-2 pl-4 pr-10 text-sm font-medium outline-none focus:border-emerald-600 focus:bg-white transition-all" />
+            <input type="text" placeholder="Search name or ID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-64 rounded-lg border border-gray-200 bg-slate-50 p-2 pl-4 pr-10 text-sm font-medium outline-none focus:border-emerald-600 focus:bg-white transition-all" />
             <Search size={16} className="absolute right-3 top-3 text-gray-400" />
           </div>
         </div>
@@ -256,6 +279,7 @@ export default function ResidentsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#1e293b] text-xs font-bold uppercase tracking-wider text-slate-200">
+                  <th className="p-4">Resident ID</th>
                   <th className="p-4">Full Name</th>
                   <th className="p-4">Contact</th>
                   <th className="p-4">Address</th>
@@ -269,56 +293,64 @@ export default function ResidentsPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm text-gray-700 font-medium">
                 {filteredResidents.length > 0 ? (
-                  filteredResidents.map((res, idx) => (
-                    // 🚀 STAGGERED ROW ANIMATION EFFECT
-                    <motion.tr 
-                      key={res._id || idx} 
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, delay: Math.min(idx * 0.02, 0.25) }}
-                      className="hover:bg-slate-50/70 transition-colors"
-                    >
-                      <td className="p-4 font-bold text-gray-900">{`${res.firstName} ${res.middleName ? res.middleName + ' ' : ''}${res.lastName}`}</td>
-                      <td className="p-4 font-mono text-gray-600">{res.contact}</td>
-                      <td className="p-4 text-gray-500">{res.address}</td>
-                      <td className="p-4 text-gray-600"><span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 border border-slate-200">{res.purok}</span></td>
-                      <td className="p-4 text-gray-500">{res.gender}</td>
-                      <td className="p-4 font-bold text-slate-700">{res.age !== undefined && res.age !== "" ? res.age : "N/A"}</td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-bold ${res.isRegisteredVoter === "Yes" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-gray-100 text-gray-600"}`}>
-                          {res.isRegisteredVoter || "No"}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${res.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-                          {res.status}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <motion.button 
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleEditTrigger(res, idx)} 
-                            className="rounded bg-amber-50 p-1.5 text-amber-600 hover:bg-amber-100 shadow-sm transition-colors"
-                          >
-                            <Edit2 size={14} />
-                          </motion.button>
-                          <motion.button 
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleDelete(idx, `${res.firstName} ${res.lastName}`)} 
-                            className="rounded bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 shadow-sm transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </motion.button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
+                  filteredResidents.map((res, idx) => {
+                    const currentZone = res.zoneAssignment || res.purok;
+                    const currentStatus = res.accountStatus || res.status;
+                    const currentContact = res.contactNo || res.contact;
+                    const currentAddress = res.streetAddress || res.address;
+                    const currentVoter = res.isVoter || res.isRegisteredVoter || "No";
+
+                    return (
+                      <motion.tr 
+                        key={res._id || idx} 
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, delay: Math.min(idx * 0.02, 0.25) }}
+                        className="hover:bg-slate-50/70 transition-colors"
+                      >
+                        <td className="p-4 font-mono font-bold text-emerald-700 text-xs">{res.residentId || "PENDING"}</td>
+                        <td className="p-4 font-bold text-gray-900">{`${res.firstName} ${res.middleName ? res.middleName + ' ' : ''}${res.lastName}`}</td>
+                        <td className="p-4 font-mono text-gray-600">{currentContact}</td>
+                        <td className="p-4 text-gray-500">{currentAddress}</td>
+                        <td className="p-4 text-gray-600"><span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 border border-slate-200">{currentZone}</span></td>
+                        <td className="p-4 text-gray-500">{res.gender}</td>
+                        <td className="p-4 font-bold text-slate-700">{res.age !== undefined && res.age !== "" ? res.age : "N/A"}</td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-bold ${currentVoter === "Yes" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-gray-100 text-gray-600"}`}>
+                            {currentVoter}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${currentStatus === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                            {currentStatus}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <motion.button 
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleEditTrigger(res, idx)} 
+                              className="rounded bg-amber-50 p-1.5 text-amber-600 hover:bg-amber-100 shadow-sm transition-colors"
+                            >
+                              <Edit2 size={14} />
+                            </motion.button>
+                            <motion.button 
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleDelete(idx, `${res.firstName} ${res.lastName}`)} 
+                              className="rounded bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 shadow-sm transition-colors"
+                            >
+                              <Trash2 size={14} />
+                            </motion.button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center font-bold text-gray-400 uppercase tracking-wide">No resident files found</td>
+                    <td colSpan={10} className="p-8 text-center font-bold text-gray-400 uppercase tracking-wide">No resident files found</td>
                   </tr>
                 )}
               </tbody>
@@ -345,7 +377,7 @@ export default function ResidentsPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between bg-[#1e293b] p-5 text-white">
                   <h3 className="text-sm font-black uppercase tracking-wider">{isEditMode ? "Modifying Resident Profile Logs" : "Census Registry: Encode Resident Record"}</h3>
-                  <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
                 </div>
 
                 {/* Form Elements */}
@@ -380,7 +412,7 @@ export default function ResidentsPage() {
                   <div className="grid grid-cols-3 gap-2">
                     <div className="col-span-2">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Contact No.</label>
-                      <input type="text" required value={formData.contactNumber} onChange={(e) => setFormData({...formData, contactNumber: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2 text-sm font-mono outline-none focus:bg-white focus:border-emerald-600 transition-all" />
+                      <input type="text" required value={formData.contactNo} onChange={(e) => setFormData({...formData, contactNo: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2 text-sm font-mono outline-none focus:bg-white focus:border-emerald-600 transition-all" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Age</label>
@@ -390,7 +422,7 @@ export default function ResidentsPage() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Zone Assignment</label>
-                    <select value={formData.barangay} onChange={(e) => setFormData({...formData, barangay: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2 text-sm font-semibold cursor-pointer">
+                    <select value={formData.zoneAssignment} onChange={(e) => setFormData({...formData, zoneAssignment: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2 text-sm font-semibold cursor-pointer">
                       <option value="Zone I">Zone I</option>
                       <option value="Zone II">Zone II</option>
                       <option value="Zone III">Zone III</option>
@@ -403,7 +435,7 @@ export default function ResidentsPage() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Street Address</label>
-                    <input type="text" required value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2.5 text-sm font-medium outline-none focus:bg-white focus:border-emerald-600 transition-all" />
+                    <input type="text" required value={formData.streetAddress} onChange={(e) => setFormData({...formData, streetAddress: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2.5 text-sm font-medium outline-none focus:bg-white focus:border-emerald-600 transition-all" />
                   </div>
 
                   <div className="grid grid-cols-4 gap-2">
@@ -421,14 +453,14 @@ export default function ResidentsPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide mb-1">Voter?</label>
-                      <select value={formData.isRegisteredVoter} onChange={(e) => setFormData({...formData, isRegisteredVoter: e.target.value})} className="w-full rounded-lg border border-blue-200 bg-blue-50/60 p-2 text-xs font-bold text-blue-700 cursor-pointer outline-none focus:bg-white">
+                      <select value={formData.isVoter} onChange={(e) => setFormData({...formData, isVoter: e.target.value})} className="w-full rounded-lg border border-blue-200 bg-blue-50/60 p-2 text-xs font-bold text-blue-700 cursor-pointer outline-none focus:bg-white">
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Status</label>
-                      <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2 text-xs font-bold cursor-pointer">
+                      <select value={formData.accountStatus} onChange={(e) => setFormData({...formData, accountStatus: e.target.value})} className="w-full rounded-lg border border-gray-200 bg-slate-50 p-2 text-xs font-bold cursor-pointer">
                         <option value="Active">Active</option><option value="Deceased">Deceased</option><option value="Moved Out">Moved Out</option>
                       </select>
                     </div>
