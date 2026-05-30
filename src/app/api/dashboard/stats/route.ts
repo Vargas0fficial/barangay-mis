@@ -5,9 +5,8 @@ import Resident from "@/models/Resident";
 import Log from "@/models/Log";
 import Blotter from "@/models/Blotter"; 
 import Official from "@/models/Official"; 
-import FourPs from "@/models/FourPs"; // Selyadong 4Ps model track
+import FourPs from "@/models/FourPs"; 
 
-// 🚀 FORCE DYNAMIC: Sinasabihan si Next.js na huwag i-prerender ito sa build time para lampasan ang Database URI check!
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -41,30 +40,26 @@ export async function GET() {
       $or: [{ status: "Referred to Court" }, { caseStatus: "Referred to Court" }] 
     }).catch(() => 0);
 
-    // 4. 👥 DEMOGRAPHICS CALCULATION
-    const seniorCitizens = await Resident.countDocuments({ 
-      $or: [{ age: { $gte: 60 } }, { classification: "Senior Citizen" }] 
-    });
-
-    // 💡 IN-EDIT PARA SALUHIN ANG BAGONG ISREGISTEREDVOTER FIELD PERO WALANG BINABAGO SA NATAPOS NA
+    // 4. 👥 DEMOGRAPHICS — synced sa isVoter field ng Resident model
     const voters = await Resident.countDocuments({ 
-      $or: [
-        { isRegisteredVoter: "Yes" }, 
-        { isVoter: true }, 
-        { voterStatus: "Active" }
-      ],
-      status: "Active" // Bibilangin lang ang mga kasalukuyang active residents
-    });
+      isVoter: "Yes"
+    }).catch(() => 0);
 
-    const minors = await Resident.countDocuments({ age: { $lt: 18 } });
+    const seniorCitizens = await Resident.countDocuments({ 
+      age: { $gte: 60 }
+    }).catch(() => 0);
+
+    const minors = await Resident.countDocuments({ 
+      age: { $lt: 18 }
+    }).catch(() => 0);
 
     // 5. 📝 RECENT SYSTEM LOGS ROUTINE
-    const rawLogs = await Log.find({}).sort({ createdAt: -1 }).limit(5);
+    const rawLogs = await Log.find({}).sort({ createdAt: -1 }).limit(5).catch(() => []);
 
     const formattedLogs = rawLogs.map((log) => ({
       id: log._id.toString(),
-      action: log.action,
-      target: log.target,
+      action: log.action || "System Action",
+      target: log.target || "N/A",
       time: formatTimeAgo(log.createdAt),
     }));
 
@@ -82,7 +77,7 @@ export async function GET() {
         settledCases,
         referredCases
       },
-      demographics: { // 💡 FIXED: Itinugma sa 'demographics' para salong-salo ng frontend
+      demographics: {
         voters,
         seniorCitizens,
         minors
@@ -97,6 +92,7 @@ export async function GET() {
 }
 
 function formatTimeAgo(date: Date) {
+  if (!date) return "Just now";
   const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
   if (seconds < 60) return "Just now";
   const minutes = Math.floor(seconds / 60);

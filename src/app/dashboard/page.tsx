@@ -5,7 +5,6 @@ import { Users, ShieldAlert, CheckCircle2, UserCheck, Activity, RefreshCw } from
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { motion } from "framer-motion";
 
-
 interface SystemStats {
   totalResidents: number;
   activeOfficials: number;
@@ -62,15 +61,15 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
+  // ✅ FIXED: Chart data now always uses actual API data only — no more wrong fallback calculations
   const chartData = [
-    { name: "Registered Voters", value: demographics.voters || 0, color: "#3b82f6" }, 
-    { name: "Senior Citizens", value: demographics.seniorCitizens || 0, color: "#f59e0b" }, 
-    { name: "Minors", value: demographics.minors || 0, color: "#10b981" }, 
+    { name: "Registered Voters", value: demographics.voters, color: "#3b82f6" },
+    { name: "Senior Citizens", value: demographics.seniorCitizens, color: "#f59e0b" },
+    { name: "Minors", value: demographics.minors, color: "#10b981" },
   ];
 
   const totalDemographics = chartData.reduce((sum, entry) => sum + entry.value, 0);
 
-  // Animation variants para sa cards stagger entry
   const containerVariants = {
     show: { transition: { staggerChildren: 0.05 } }
   };
@@ -186,9 +185,8 @@ export default function DashboardPage() {
               ) : totalDemographics === 0 ? (
                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">No Data Decoded Yet</div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    {/* 💡 PINAKALAMAN NG ANY TYPE CASTING SA PARAMETERS PARA PATAY ANG RED LINES SA TYPESYCRIPT */}
                     <Tooltip
                       content={({ active, payload }: any) => {
                         if (active && payload && payload.length) {
@@ -197,7 +195,7 @@ export default function DashboardPage() {
                             <div className="rounded-xl border border-white/10 bg-slate-900/95 p-3 text-xs font-bold text-white shadow-xl backdrop-blur-md">
                               <p className="uppercase tracking-wide text-slate-400">{target.name}</p>
                               <p className="text-sm font-black mt-1 text-sky-400">
-                                {Number(target.value).toLocaleString()} <span className="text-[10px] text-slate-400 font-medium">residents</span>
+                                {Number(target.value).toLocaleString()} <span className="text-[10px] text-slate-400 font-medium">{target.name}</span>
                               </p>
                             </div>
                           );
@@ -213,10 +211,16 @@ export default function DashboardPage() {
                       outerRadius={90}
                       paddingAngle={5}
                       dataKey="value"
+                      nameKey="name"
                       animationDuration={800}
                     >
                       {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} className="outline-none focus:outline-none" />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color} 
+                          name={entry.name}
+                          className="outline-none focus:outline-none" 
+                        />
                       ))}
                     </Pie>
                     <Legend 
