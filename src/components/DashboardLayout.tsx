@@ -1,6 +1,7 @@
 "use client";
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/LoadingScreen";
 
 interface LayoutProps {
   children: ReactNode;
@@ -113,6 +114,7 @@ export default function DashboardLayout({ children, activeMenu }: LayoutProps) {
 
   return (
     <div className="flex h-screen w-full bg-slate-100 font-sans text-gray-800 overflow-hidden">
+      <LoadingScreen />
       {/* SIDEBAR */}
       <aside className="flex h-full w-64 flex-col bg-[#155d27] text-green-100 shadow-xl z-20">
         
