@@ -6,8 +6,18 @@ export default function LoadingScreen() {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setFadeOut(true), 1800);
-    const hideTimer = setTimeout(() => setShow(false), 2200);
+    // Check if loading screen has already been shown this session
+    const alreadyShown = sessionStorage.getItem("loadingShown");
+    if (alreadyShown) {
+      setShow(false);
+      return;
+    }
+
+    // Mark as shown so it won't appear again on page navigation
+    sessionStorage.setItem("loadingShown", "true");
+
+    const fadeTimer = setTimeout(() => setFadeOut(true), 3500);
+    const hideTimer = setTimeout(() => setShow(false), 4000);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
@@ -24,7 +34,7 @@ export default function LoadingScreen() {
           100% { width: 100%; }
         }
         .loading-bar {
-          animation: loadingBar 1.8s ease-in-out forwards;
+          animation: loadingBar 3.5s ease-in-out forwards;
         }
         .loading-fade {
           transition: opacity 0.5s ease;
