@@ -21,9 +21,8 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true); // ⚡ TAMA NA: Ginamit ang tamang state setter function!
+    setLoading(true);
 
-    // 🚀 CLOUD ROUTING CONNECTOR:
     const BACKEND_URL = "https://barangay-mis-backend.onrender.com";
 
     try {
@@ -51,18 +50,14 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-screen w-full bg-white font-sans text-gray-800 selection:bg-green-600 selection:text-white">
-      {/* LEFT: Emerald Green Branding Panel - 50% */}
+      {/* LEFT: Emerald Green Branding Panel */}
       <div className="relative w-1/2 flex-col items-center justify-center bg-gradient-to-br from-green-700 via-green-600 to-emerald-800 p-8 flex overflow-hidden">
-        {/* Watermark Image - Low Opacity sa likod */}
         <img 
           src="/dom-east-1.png" 
           alt="Watermark" 
           className="absolute inset-0 w-full h-full object-cover opacity-[0.35] pointer-events-none"
         />
-        
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
-        
-        {/* 🚀 Swabeng entry animation para sa Logo at Barangay Title */}
         <div className="z-20 flex flex-col items-center text-center animate-fadeInUp relative">
           <div className="mb-6 h-44 w-44 overflow-hidden rounded-full border-4 border-yellow-400 bg-white p-2 shadow-2xl transition-transform hover:scale-105 duration-300">
             <img src="/dom-east.png" alt="Barangay Logo" className="h-full w-full object-contain" />
@@ -76,7 +71,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* RIGHT: Clean Admin Login Interface - 50% */}
+      {/* RIGHT: Login Form */}
       <div className="w-1/2 flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-36 flex">
         <div className="mx-auto w-full max-w-md animate-fadeInUp">
           <div className="mb-8 flex items-center gap-3">
@@ -156,6 +151,7 @@ export default function LoginPage() {
               </a>
             </div>
 
+            {/* Login Button */}
             <button
               type="submit"
               disabled={loading}
@@ -168,6 +164,18 @@ export default function LoginPage() {
                 </svg>
               )}
               {loading ? "Verifying Credentials..." : "Login"}
+            </button>
+
+            {/* Back to Homepage Button */}
+            <button
+              type="button"
+              onClick={() => window.open("/")}
+              className="w-full flex items-center justify-center gap-2 rounded-md py-3 text-center font-bold text-gray-600 hover:text-green-700 active:scale-[0.99] transition-all duration-150"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+              Back to Homepage
             </button>
           </form>
 
