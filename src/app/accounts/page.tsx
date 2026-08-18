@@ -28,7 +28,7 @@ export default function AccountsPage() {
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/accounts");
+        const res = await fetch("/api/accounts");
         if (res.ok) {
           const data = await res.json();
           setAccounts(data);
@@ -52,7 +52,7 @@ export default function AccountsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/accounts", {
+      const res = await fetch("/api/accounts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -81,27 +81,12 @@ export default function AccountsPage() {
         setIsModalOpen(false);
         setFormData({ fullName: "", username: "", password: "", role: "Secretary", status: "Active" });
       } else {
-        alert("Server failed to provision user profile. Review database indexing log parameters");
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || "Server failed to save the new account. Please try again.");
       }
     } catch (err) {
-      console.error("Database connection dropped:", err);
-      
-      // Fallback architecture synchronization for offline testing execution
-      const nextIndex = accounts.length > 0 ? Math.max(...accounts.map(a => parseInt(a.userId.split('-')[1]) || 0)) + 1 : 1;
-      const generatedId = `ACC-${String(nextIndex).padStart(3, '0')}`;
-      
-      setAccounts((prev) => [
-        ...prev,
-        {
-          userId: generatedId,
-          fullName: formData.fullName,
-          username: formData.username,
-          role: formData.role,
-          status: formData.status,
-          passwordPreview: formData.password || "FallbackPass123"
-        }
-      ]);
-      setIsModalOpen(false);
+      console.error("Error creating account:", err);
+      alert("Network error — the account was not saved. Please check your connection and try again.");
     }
   };
 
@@ -109,8 +94,10 @@ export default function AccountsPage() {
   const handleDeleteAccount = async (userId: string) => {
     if (confirm("Are you sure you want to permanently delete this system user profile account tracking layer? This action cannot be undone.")) {
       try {
-        const res = await fetch(`http://localhost:5000/api/accounts/${userId}`, {
-          method: "DELETE"
+        const res = await fetch("/api/accounts", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: userId }),
         });
 
         if (res.ok) {
